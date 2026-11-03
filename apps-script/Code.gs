@@ -109,16 +109,43 @@ function adminLogin(pin) {
 }
 function adminData(pin) {
   requirePin_(pin);
-  return {products:readRows_('Products'),articles:readRows_('Articles'),gallery:readRows_('Gallery'),testimonials:readRows_('Testimonials'),settings:settingsObject_(),pageContent:pageContentObject_(),summary:dashboard_()};
+  const products = readRows_('Products');
+  const articles = readRows_('Articles');
+  const gallery = readRows_('Gallery');
+  const testimonials = readRows_('Testimonials');
+  const settings = settingsObject_();
+  const pageContent = pageContentObject_();
+  const summary = dashboard_();
+  return {products:products,articles:articles,gallery:gallery,testimonials:testimonials,settings:settings,pageContent:pageContent,summary:summary};
 }
 function adminSave(pin, sheet, record) {
   requirePin_(pin);
   if (!SHEETS[sheet] || ['Admins','Settings','PageContent'].includes(sheet)) throw new Error('Modul tidak diizinkan.');
   const allowed = SHEETS[sheet];
   const obj = {};
-  allowed.forEach(k => { if (record[k] !== undefined) obj[k] = record[k]; });
-  if (!obj.id) obj.id = Utilities.getUuid();
-  if (!obj.createdAt) obj.createdAt = new Date().toISOString();
+  allowed.forEach(k => { if (record[k] !== undefined && record[k] !== null) obj[k] = record[k]; });
+  if (!obj.id || String(obj.id).trim() === '') {
+    obj.id = Utilities.getUuid();
+    obj.createdAt = new Date().toISOString();
+  } else {
+    // preserve existing createdAt if not provided
+    try {
+      const sh = sheet_(sheet);
+      const rows = sh.getDataRange().getValues();
+      const h = rows[0];
+      const idIdx = h.indexOf('id');
+      const cIdx = h.indexOf('createdAt');
+      if (cIdx >= 0) {
+        for (let i=1; i<rows.length; i++) {
+          if (String(rows[i][idIdx]) === String(obj.id) && rows[i][cIdx]) {
+            if (!obj.createdAt) obj.createdAt = rows[i][cIdx] instanceof Date ? rows[i][cIdx].toISOString() : rows[i][cIdx];
+            break;
+          }
+        }
+      }
+    } catch(e) {}
+    if (!obj.createdAt) obj.createdAt = new Date().toISOString();
+  }
   obj.updatedAt = new Date().toISOString();
   upsertObject_(sheet,obj);
   return {ok:true,id:obj.id};

@@ -19,6 +19,11 @@ async function refresh(){
   try{
     DATA=await call('adminData',PIN);
     if(!DATA) DATA={};
+    // ensure arrays exist
+    if(!Array.isArray(DATA.products)) DATA.products=[];
+    if(!Array.isArray(DATA.articles)) DATA.articles=[];
+    if(!Array.isArray(DATA.gallery)) DATA.gallery=[];
+    if(!Array.isArray(DATA.testimonials)) DATA.testimonials=[];
     render(document.querySelector('#sideNav .active')?.dataset.view||'dashboard');
   }catch(e){alert('Gagal memuat data: '+(e.message||e));}
 }
@@ -66,7 +71,7 @@ function listView(sheet){
   $('#view').innerHTML=`
     <div class="panel-head">
       <h3>${labels[sheet]||sheet} — ${rows.length} data</h3>
-      <button class="primary" onclick="editForm('${sheet}')">+ Tambah Data</button>
+      <button class="primary" onclick="editForm('${sheet}')">+ Tambah ${labels[sheet]||'Data'}</button>
     </div>
     ${table(sheet,rows)}
   `;
@@ -214,10 +219,13 @@ function previewImg(input){
 async function saveForm(sheet,id){
   try{
     const record={};
-    if(id) record.id=id;
+    if(id && String(id).trim() !== '') record.id=id;
     if(sheet==='Products'){
       ['category','name','species','sex','age','type','price','status','featured','description','parentage','photoIds','videoUrl','audioUrl'].forEach(k=>{
-        const el=$('#f_'+k); if(el) record[k]=k==='price'&&el.value!==''?Number(el.value):el.value;
+        const el=$('#f_'+k); if(el){
+          if(k==='price') record[k]=el.value===''?0:Number(el.value);
+          else record[k]=el.value;
+        }
       });
     }else if(sheet==='Articles'){
       ['title','excerpt','content','coverId','published'].forEach(k=>{const el=$('#f_'+k); if(el) record[k]=el.value;});
@@ -230,7 +238,8 @@ async function saveForm(sheet,id){
     if(file && sheet==='Products'){
       const data=await toBase64(file);
       const uploaded=await call('adminUpload',PIN,file.name,file.type,data);
-      record.photoIds=[record.photoIds,uploaded.id].filter(Boolean).join(',');
+      const existing = record.photoIds ? String(record.photoIds).split(',').filter(Boolean) : [];
+      record.photoIds = [...existing, uploaded.id].filter(Boolean).join(',');
     }
     await call('adminSave',PIN,sheet,record);
     await refresh();
