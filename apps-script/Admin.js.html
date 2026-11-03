@@ -67,7 +67,7 @@ function dashboard(){
   `;
 }
 function listView(sheet){
-  const rows=DATA[sheet]||[];
+  const rows=DATA[sheet.toLowerCase()]||[];
   const labels={Products:'Produk',Articles:'Artikel',Gallery:'Galeri',Testimonials:'Testimoni'};
   $('#view').innerHTML=`
     <div class="panel-head">
@@ -103,7 +103,7 @@ function table(sheet,rows){
 }
 function editForm(sheet,id=''){
   if(sheet==='Settings') return settings();
-  const rows=DATA[sheet]||[];
+  const rows=DATA[sheet.toLowerCase()]||[];
   const row=(rows.find(x=>x.id===id))||{};
   if(sheet==='Products'){
     $('#view').innerHTML=`
