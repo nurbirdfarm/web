@@ -200,28 +200,6 @@ function pageContentObject_(){
   } catch(e){}
   return o;
 }
-function adminSavePageContent(pin,obj) {
-  requirePin_(pin);
-  const sh=sheet_('PageContent');
-  if(!sh) return {ok:true};
-  const rows=sh.getDataRange().getValues();
-  Object.keys(obj).forEach(k=>{
-    let found=false;
-    for(let i=1;i<rows.length;i++) if(rows[i][0]===k){sh.getRange(i+1,2).setValue(String(obj[k]));found=true;break;}
-    if(!found) sh.appendRow([k,String(obj[k]),'text','']);
-  });
-  return {ok:true};
-}
-function adminGetPageContent() {
-  return pageContentObject_();
-}
-function pageContentObject_(){
-  const o={};
-  try {
-    readRows_('PageContent').forEach(r=>o[r.key]=r.value);
-  } catch(e){}
-  return o;
-}
 function handleAdminAction_(b) {
   if(b.action==='save') return adminSave(b.pin,b.sheet,b.record);
   if(b.action==='delete') return adminDelete(b.pin,b.sheet,b.id);

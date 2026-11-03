@@ -1,6 +1,7 @@
 <script>
 let PIN='',DATA={};
 const $=s=>document.querySelector(s);
+const isTrue=v=>String(v).toLowerCase()==='true';
 function call(fn,...args){return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(resolve).withFailureHandler(e=>reject(new Error(e.message||e)))[fn](...args))}
 $('#loginBtn').onclick=login;
 $('#pinInput').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
@@ -85,7 +86,7 @@ function table(sheet,rows){
   }
   if(sheet==='Articles'){
     return `<div class="table-wrap"><table><thead><tr><th>JUDUL</th><th>RINGKASAN</th><th>DITAMPILKAN</th><th>AKSI</th></tr></thead><tbody>${
-      rows.map(r=>`<tr><td><strong>${escapeHtml(r.title||'-')}</strong></td><td>${escapeHtml((r.excerpt||'').substring(0,80))}${r.excerpt&&r.excerpt.length>80?'...':''}</td><td>${r.published==='true'?'Ya':'Tidak'}</td><td><button onclick="editForm('Articles','${r.id}')">Ubah</button><button onclick="removeRow('Articles','${r.id}')">Hapus</button></td></tr>`).join('')||`<tr><td colspan="4">Belum ada artikel.</td></tr>`
+      rows.map(r=>`<tr><td><strong>${escapeHtml(r.title||'-')}</strong></td><td>${escapeHtml((r.excerpt||'').substring(0,80))}${r.excerpt&&r.excerpt.length>80?'...':''}</td><td>${isTrue(r.published)?'Ya':'Tidak'}</td><td><button onclick="editForm('Articles','${r.id}')">Ubah</button><button onclick="removeRow('Articles','${r.id}')">Hapus</button></td></tr>`).join('')||`<tr><td colspan="4">Belum ada artikel.</td></tr>`
     }</tbody></table></div>`;
   }
   if(sheet==='Gallery'){
@@ -95,7 +96,7 @@ function table(sheet,rows){
   }
   if(sheet==='Testimonials'){
     return `<div class="table-wrap"><table><thead><tr><th>PELANGGAN</th><th>TESTIMONI</th><th>DITAMPILKAN</th><th>AKSI</th></tr></thead><tbody>${
-      rows.map(r=>`<tr><td><strong>${escapeHtml(r.customer||'-')}</strong></td><td>${escapeHtml((r.quote||'').substring(0,90))}${r.quote&&r.quote.length>90?'...':''}</td><td>${r.published==='true'?'Ya':'Tidak'}</td><td><button onclick="editForm('Testimonials','${r.id}')">Ubah</button><button onclick="removeRow('Testimonials','${r.id}')">Hapus</button></td></tr>`).join('')||`<tr><td colspan="4">Belum ada testimoni.</td></tr>`
+      rows.map(r=>`<tr><td><strong>${escapeHtml(r.customer||'-')}</strong></td><td>${escapeHtml((r.quote||'').substring(0,90))}${r.quote&&r.quote.length>90?'...':''}</td><td>${isTrue(r.published)?'Ya':'Tidak'}</td><td><button onclick="editForm('Testimonials','${r.id}')">Ubah</button><button onclick="removeRow('Testimonials','${r.id}')">Hapus</button></td></tr>`).join('')||`<tr><td colspan="4">Belum ada testimoni.</td></tr>`
     }</tbody></table></div>`;
   }
   return `<div class="table-wrap"><table><tbody><tr><td>Tidak ada tampilan tabel untuk modul ini.</td></tr></tbody></table></div>`;
@@ -120,7 +121,7 @@ function editForm(sheet,id=''){
           <div class="field"><label>Tipe</label><input id="f_type" value="${escapeAttr(row.type||'')}"></div>
           <div class="field"><label>Harga (Rp)</label><input id="f_price" type="number" value="${escapeAttr(row.price??'')}"></div>
           <div class="field"><label>Status</label><select id="f_status"><option ${row.status==='Tersedia'?'selected':''}>Tersedia</option><option ${row.status==='Inden'?'selected':''}>Inden</option><option ${row.status==='Terjual'?'selected':''}>Terjual</option></select></div>
-          <div class="field"><label>Unggulan</label><select id="f_featured"><option value="false" ${row.featured!=='true'?'selected':''}>Tidak</option><option value="true" ${row.featured==='true'?'selected':''}>Ya</option></select></div>
+          <div class="field"><label>Unggulan</label><select id="f_featured"><option value="false" ${!isTrue(row.featured)?'selected':''}>Tidak</option><option value="true" ${isTrue(row.featured)?'selected':''}>Ya</option></select></div>
           <div class="field full"><label>Deskripsi</label><textarea id="f_description">${escapeHtml(row.description||'')}</textarea></div>
           <div class="field full"><label>Riwayat Indukan</label><textarea id="f_parentage">${escapeHtml(row.parentage||'')}</textarea></div>
           <div class="field full"><label>ID Foto Google Drive (pisahkan koma)</label><input id="f_photoIds" value="${escapeAttr(row.photoIds||'')}"></div>
@@ -152,7 +153,7 @@ function editForm(sheet,id=''){
           <div class="field full"><label>Ringkasan</label><textarea id="f_excerpt">${escapeHtml(row.excerpt||'')}</textarea></div>
           <div class="field full"><label>Isi Artikel</label><textarea id="f_content" style="min-height:200px">${escapeHtml(row.content||'')}</textarea></div>
           <div class="field"><label>Cover ID (Google Drive)</label><input id="f_coverId" value="${escapeAttr(row.coverId||'')}"></div>
-          <div class="field"><label>Tampilkan di Publik</label><select id="f_published"><option value="true" ${row.published==='true'?'selected':''}>Ya</option><option value="false" ${row.published!=='true'?'selected':''}>Tidak</option></select></div>
+          <div class="field"><label>Tampilkan di Publik</label><select id="f_published"><option value="true" ${isTrue(row.published)?'selected':''}>Ya</option><option value="false" ${!isTrue(row.published)?'selected':''}>Tidak</option></select></div>
         </div>
         <div class="actions">
           <button class="primary" onclick="saveForm('Articles','${id||''}')">Simpan Artikel</button>
@@ -192,7 +193,7 @@ function editForm(sheet,id=''){
         </div>
         <div class="form-grid">
           <div class="field"><label>Nama Pelanggan</label><input id="f_customer" value="${escapeAttr(row.customer||'')}"></div>
-          <div class="field"><label>Tampilkan</label><select id="f_published"><option value="true" ${row.published==='true'?'selected':''}>Ya</option><option value="false" ${row.published!=='true'?'selected':''}>Tidak</option></select></div>
+          <div class="field"><label>Tampilkan</label><select id="f_published"><option value="true" ${isTrue(row.published)?'selected':''}>Ya</option><option value="false" ${!isTrue(row.published)?'selected':''}>Tidak</option></select></div>
           <div class="field full"><label>Isi Testimoni</label><textarea id="f_quote">${escapeHtml(row.quote||'')}</textarea></div>
         </div>
         <div class="actions">

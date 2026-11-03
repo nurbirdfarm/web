@@ -1,3 +1,4 @@
+const cfg=window.NUR_CONFIG||{};
 let state={products:[],articles:[],category:"kenari",pageContent:{}};
 const $=s=>document.querySelector(s), money=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n)||0);
 function waUrl(product=""){const msg=product?`Halo NUR BIRDFARM, saya ingin bertanya tentang ${product}. Apakah masih tersedia?`:"Halo NUR BIRDFARM, saya ingin bertanya tentang katalog dan ketersediaan produk.";return `https://wa.me/${(cfg.WHATSAPP_NUMBER||"").replace(/\D/g,"")}?text=${encodeURIComponent(msg)}`}
