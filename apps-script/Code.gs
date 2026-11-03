@@ -1,5 +1,5 @@
-const SPREADSHEET_ID = 'PASTE_SPREADSHEET_ID_HERE';
-const ADMIN_PIN = 'GANTI_PIN_AWAL_INI';
+const SPREADSHEET_ID = '1eoX6gAknlfJXvJ90VLjaKmb-ExUzWNnEfkxnG6cHWNw';
+const ADMIN_PIN = '083835';
 const SHEETS = {
   Products: ['id','category','name','species','sex','age','type','price','status','featured','description','parentage','photoIds','videoUrl','audioUrl','createdAt','updatedAt'],
   Articles: ['id','title','excerpt','content','coverId','published','createdAt','updatedAt'],
