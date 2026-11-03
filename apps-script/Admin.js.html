@@ -7,7 +7,7 @@ async function login(){try{PIN=$('#pinInput').value;await call('adminLogin',PIN)
 async function refresh(){DATA=await call('adminData',PIN);render('dashboard')}
 $('#logoutBtn').onclick=()=>{PIN='';$('#app').classList.add('hidden');$('#login').classList.remove('hidden');$('#pinInput').value=''};
 $('#sideNav').onclick=e=>{const b=e.target.closest('button[data-view]');if(b)render(b.dataset.view)};
-function render(view){document.querySelectorAll('#sideNav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$('#pageTitle').textContent=({dashboard:'Ringkasan',Products:'Produk',Articles:'Artikel',Gallery:'Galeri',Testimonials:'Testimoni',Settings:'Pengaturan'})[view];if(view==='dashboard')return dashboard();if(view==='Settings')return settings();listView(view)}
+function render(view){document.querySelectorAll('#sideNav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$('#pageTitle').textContent=({dashboard:'Ringkasan',PageContent:'Tampilan Website',Products:'Produk',Articles:'Artikel',Gallery:'Galeri',Testimonials:'Testimoni',Settings:'Pengaturan'})[view];if(view==='dashboard')return dashboard();if(view==='Settings')return settings();if(view==='PageContent')return pageContent();listView(view)}
 function dashboard(){const s=DATA.summary;$('#view').innerHTML=`<div class="stats"><div class="stat"><span>SELURUH PRODUK</span><b>${s.products}</b></div><div class="stat"><span>TERSEDIA</span><b>${s.available}</b></div><div class="stat"><span>TERJUAL</span><b>${s.sold}</b></div><div class="stat"><span>ARTIKEL</span><b>${s.articles}</b></div></div><p class="notice">Perubahan yang disimpan di panel ini akan masuk ke Google Sheets. Media disimpan di folder Google Drive project.</p><div class="panel-head"><h3>Produk terbaru</h3><button class="primary" onclick="render('Products')">Kelola produk ↗</button></div>${table('Products',DATA.products.slice(-5).reverse())}`}
 function listView(sheet){const rows=DATA[sheet]||[];$('#view').innerHTML=`<div class="panel-head"><h3>${rows.length} data</h3><button class="primary" onclick="editForm('${sheet}')">Tambah data +</button></div>${table(sheet,rows)}`}
 function table(sheet,rows){const fields=sheet==='Products'?['name','category','price','status']:sheet==='Articles'?['title','excerpt','published']:sheet==='Gallery'?['title','mediaType','url']:['customer','quote','published'];return `<div class="table-wrap"><table><thead><tr>${fields.map(x=>`<th>${x.toUpperCase()}</th>`).join('')}<th>AKSI</th></tr></thead><tbody>${rows.map(r=>`<tr>${fields.map(x=>`<td>${escapeHtml(r[x]??'')}</td>`).join('')}<td><button onclick="editForm('${sheet}','${r.id}')">Ubah</button><button onclick="removeRow('${sheet}','${r.id}')">Hapus</button></td></tr>`).join('')||`<tr><td colspan="${fields.length+1}">Belum ada data.</td></tr>`}</tbody></table></div>`}
@@ -15,8 +15,35 @@ function editForm(sheet,id=''){const row=(DATA[sheet]||[]).find(x=>x.id===id)||{
 async function saveForm(sheet,id){try{const fields=[...document.querySelectorAll('[id^="f_"]')],record={id};fields.forEach(el=>record[el.id.slice(2)]=el.type==='number'?Number(el.value):el.value);const file=$('#mediaFile')?.files[0];if(file){const data=await toBase64(file);const uploaded=await call('adminUpload',PIN,file.name,file.type,data);record.photoIds=[record.photoIds,uploaded.id].filter(Boolean).join(',')}await call('adminSave',PIN,sheet,record);await refresh();render(sheet)}catch(e){alert(e.message)}}
 function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file)})}
 async function removeRow(sheet,id){if(!confirm('Hapus data ini?'))return;try{await call('adminDelete',PIN,sheet,id);await refresh();render(sheet)}catch(e){alert(e.message)}}
-function settings(){const s=DATA.settings||{};const keys=['farmName','whatsapp','address','openingHours','instagram','facebook','bannerText'];$('#view').innerHTML=`<div class="form-card settings-grid"><h3>Identitas peternakan</h3><div class="form-grid">${keys.map(k=>`<div class="field ${k==='bannerText'?'full':''}"><label>${k}</label><input id="s_${k}" value="${escapeAttr(s[k]||'')}"></div>`).join('')}</div><button class="primary" onclick="saveSettings()">Simpan pengaturan</button></div><p class="notice">Nomor WhatsApp menggunakan format internasional tanpa tanda +. Pengaturan ini disimpan di sheet Settings.</p>`}
-async function saveSettings(){const obj={};document.querySelectorAll('[id^="s_"]').forEach(el=>obj[el.id.slice(2)]=el.value);try{await call('adminSaveSettings',PIN,obj);await refresh();alert('Pengaturan disimpan.')}catch(e){alert(e.message)}}
+function pageContent(){const pc=DATA.pageContent||{};const fields=[
+  ['announcement','Teks Pengumuman (header)','html'],
+  ['hero_eyebrow','Hero - Eyebrow','text'],
+  ['hero_title','Hero - Judul','html'],
+  ['hero_desc','Hero - Deskripsi','text'],
+  ['hero_btn_catalog','Hero - Tombol "Jelajahi katalog"','html'],
+  ['hero_btn_wa','Hero - Tombol WhatsApp','text'],
+  ['hero_foot_left','Hero - Footer kiri','text'],
+  ['hero_foot_right','Hero - Footer kanan','text'],
+  ['hero_photo','Hero - URL Gambar','text'],
+  ['hero_photo_note','Hero - Catatan Foto','html'],
+  ['hero_stamp','Hero - Stempel Bulat','html'],
+  ['catalog_eyebrow','Katalog - Eyebrow','text'],
+  ['catalog_title','Katalog - Judul','html'],
+  ['catalog_aside','Katalog - Teks Samping','text'],
+  ['farm_eyebrow','Tentang - Eyebrow','text'],
+  ['farm_title','Tentang - Judul','html'],
+  ['farm_desc','Tentang - Deskripsi','text'],
+  ['farm_link','Tentang - Teks Link','text'],
+  ['farm_image','Tentang - URL Gambar','text'],
+  ['journal_eyebrow','Jurnal - Eyebrow','text'],
+  ['journal_title','Jurnal - Judul','html'],
+  ['journal_aside','Jurnal - Teks Samping','text'],
+  ['contact_eyebrow','Kontak - Eyebrow','text'],
+  ['contact_title','Kontak - Judul','html'],
+  ['contact_btn','Kontak - Tombol','html'],
+  ['footer_text','Footer - Teks','text']
+];$('#view').innerHTML=`<div class="form-card"><h3>Pengaturan Tampilan Website</h3><p class="notice">Atur teks, judul, dan gambar di halaman publik. Gunakan &lt;br&gt; atau &lt;em&gt; untuk formatting HTML.</p><div class="form-grid">${fields.map(([key,label,type])=>`<div class="field ${type==='html'?'full':''}"><label>${label}</label>${type==='html'?`<textarea id="pc_${key}">${escapeHtml(pc[key]||'')}</textarea>`:`<input id="pc_${key}" value="${escapeAttr(pc[key]||'')}">`}</div>`).join('')}</div><div class="actions"><button class="primary" onclick="savePageContent()">Simpan Tampilan</button></div></div>`}
+async function savePageContent(){const obj={};document.querySelectorAll('[id^="pc_"]').forEach(el=>obj[el.id.slice(3)]=el.value);try{await fetch(DATA.API_URL||'',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:PIN,action:'pageContent',pageContent:obj})});await refresh();alert('Tampilan website berhasil disimpan.')}catch(e){try{await call('adminSavePageContent',PIN,obj);await refresh();alert('Tampilan website berhasil disimpan.');}catch(err){alert(err.message)}}}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function escapeAttr(v){return escapeHtml(v)}
 </script>

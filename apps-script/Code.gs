@@ -6,7 +6,8 @@ const SHEETS = {
   Gallery: ['id','title','mediaType','fileId','url','createdAt'],
   Testimonials: ['id','customer','quote','published','createdAt'],
   Settings: ['key','value'],
-  Admins: ['email','pinHash','active']
+  Admins: ['email','pinHash','active'],
+  PageContent: ['key','value','type','label']
 };
 
 function setupProject() {
@@ -35,6 +36,43 @@ function setupProject() {
     const sh = ss.getSheetByName('Settings');
     defaults.forEach(r => sh.appendRow(r));
   }
+
+  let pageSh = ss.getSheetByName('PageContent');
+  if (!pageSh) pageSh = ss.insertSheet('PageContent');
+  if (pageSh.getLastRow() === 0) {
+    pageSh.appendRow(SHEETS['PageContent']);
+    const defaults = [
+      ['announcement','Peternakan kenari · Tulungagung <span>Pesan langsung melalui WhatsApp ↗</span>','html','Teks pengumuman'],
+      ['hero_eyebrow','DARI KANDANG KAMI','text','Hero - Eyebrow'],
+      ['hero_title','Burung baik<br>berawal dari<br><em>perawatan yang tepat.</em>','html','Hero - Judul'],
+      ['hero_desc','Kenari pilihan dan perlengkapan harian, dirawat dengan perhatian sebelum sampai ke rumah barunya.','text','Hero - Deskripsi'],
+      ['hero_btn_catalog','Jelajahi katalog <span>↘</span>','html','Hero - Tombol Katalog'],
+      ['hero_btn_wa','Bicarakan kebutuhanmu ↗','text','Hero - Tombol WhatsApp'],
+      ['hero_foot_left','01 / KENARI & PERLENGKAPAN','text','Hero - Kaki kiri'],
+      ['hero_foot_right','EST. NUR BIRDFARM','text','Hero - Kaki kanan'],
+      ['hero_photo','https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=1100&q=85','text','Hero - URL Foto'],
+      ['hero_photo_note','<span>01 — 04</span><b>Ruang tumbuh,<br>suara yang hidup.</b>','html','Hero - Catatan Foto'],
+      ['hero_stamp','NUR<br><b>BF</b><small>SELECTED WITH CARE</small>','html','Hero - Stempel'],
+      ['catalog_eyebrow','PILIH DARI KATALOG','text','Katalog - Eyebrow'],
+      ['catalog_title','Temukan yang<br><em>sedang kamu cari.</em>','html','Katalog - Judul'],
+      ['catalog_aside','Setiap burung punya karakter. Lihat detailnya, lalu tanyakan kondisi terbaru langsung kepada kami.','text','Katalog - Teks samping'],
+      ['farm_eyebrow','DI BALIK NUR BIRDFARM','text','Tentang - Eyebrow'],
+      ['farm_title','Bukan sekadar<br>memilih burung.<br><em>Memahami kebutuhannya.</em>','html','Tentang - Judul'],
+      ['farm_desc','Kami percaya proses pemeliharaan yang baik dimulai dari lingkungan yang terjaga, pakan yang sesuai, dan perhatian pada kondisi setiap burung.','text','Tentang - Deskripsi'],
+      ['farm_link','Kenali peternakan kami ↗','text','Tentang - Tautan'],
+      ['farm_image','https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=1000&q=80','text','Tentang - URL Foto'],
+      ['journal_eyebrow','CATATAN PERAWATAN','text','Jurnal - Eyebrow'],
+      ['journal_title','Belajar merawat,<br><em>sedikit demi sedikit.</em>','html','Jurnal - Judul'],
+      ['journal_aside','Artikel singkat seputar kenari dan keseharian di peternakan.','text','Jurnal - Teks samping'],
+      ['contact_eyebrow','ADA YANG INGIN DITANYAKAN?','text','Kontak - Eyebrow'],
+      ['contact_title','Mulai dari<br><em>satu percakapan.</em>','html','Kontak - Judul'],
+      ['contact_btn','Hubungi NUR BIRDFARM <span>↗</span>','html','Kontak - Tombol'],
+      ['footer_text','Merawat dengan perhatian. Memilih dengan pengetahuan.','text','Footer - Teks']
+    ];
+    defaults.forEach(r => pageSh.appendRow(r));
+  }
+  pageSh.setFrozenRows(1);
+  pageSh.getRange(1,1,1,SHEETS['PageContent'].length).setFontWeight('bold').setBackground('#191b16').setFontColor('#e9c83d');
   const email = Session.getActiveUser().getEmail();
   if (email && !readRows_('Admins').some(r => r.email === email)) {
     appendObject_('Admins', {email, pinHash: hash_(ADMIN_PIN), active: true});
@@ -71,11 +109,11 @@ function adminLogin(pin) {
 }
 function adminData(pin) {
   requirePin_(pin);
-  return {products:readRows_('Products'),articles:readRows_('Articles'),gallery:readRows_('Gallery'),testimonials:readRows_('Testimonials'),settings:settingsObject_(),summary:dashboard_()};
+  return {products:readRows_('Products'),articles:readRows_('Articles'),gallery:readRows_('Gallery'),testimonials:readRows_('Testimonials'),settings:settingsObject_(),pageContent:pageContentObject_(),summary:dashboard_()};
 }
 function adminSave(pin, sheet, record) {
   requirePin_(pin);
-  if (!SHEETS[sheet] || ['Admins','Settings'].includes(sheet)) throw new Error('Modul tidak diizinkan.');
+  if (!SHEETS[sheet] || ['Admins','Settings','PageContent'].includes(sheet)) throw new Error('Modul tidak diizinkan.');
   const allowed = SHEETS[sheet];
   const obj = {};
   allowed.forEach(k => { if (record[k] !== undefined) obj[k] = record[k]; });
@@ -87,7 +125,7 @@ function adminSave(pin, sheet, record) {
 }
 function adminDelete(pin,sheet,id) {
   requirePin_(pin);
-  if (!SHEETS[sheet] || ['Admins','Settings'].includes(sheet)) throw new Error('Modul tidak diizinkan.');
+  if (!SHEETS[sheet] || ['Admins','Settings','PageContent'].includes(sheet)) throw new Error('Modul tidak diizinkan.');
   const sh=sheet_(sheet), rows=sh.getDataRange().getValues(), headers=rows[0];
   const idx=headers.indexOf('id');
   for(let i=rows.length-1;i>=1;i--) if(String(rows[i][idx])===String(id)){sh.deleteRow(i+1);return {ok:true};}
@@ -113,11 +151,56 @@ function adminSaveSettings(pin,obj) {
   });
   return {ok:true};
 }
+function adminSavePageContent(pin,obj) {
+  requirePin_(pin);
+  const sh=sheet_('PageContent');
+  if(!sh) return {ok:true};
+  const rows=sh.getDataRange().getValues();
+  Object.keys(obj).forEach(k=>{
+    let found=false;
+    for(let i=1;i<rows.length;i++) if(rows[i][0]===k){sh.getRange(i+1,2).setValue(String(obj[k]));found=true;break;}
+    if(!found) sh.appendRow([k,String(obj[k]),'text','']);
+  });
+  return {ok:true};
+}
+function adminGetPageContent() {
+  return pageContentObject_();
+}
+function pageContentObject_(){
+  const o={};
+  try {
+    readRows_('PageContent').forEach(r=>o[r.key]=r.value);
+  } catch(e){}
+  return o;
+}
+function adminSavePageContent(pin,obj) {
+  requirePin_(pin);
+  const sh=sheet_('PageContent');
+  if(!sh) return {ok:true};
+  const rows=sh.getDataRange().getValues();
+  Object.keys(obj).forEach(k=>{
+    let found=false;
+    for(let i=1;i<rows.length;i++) if(rows[i][0]===k){sh.getRange(i+1,2).setValue(String(obj[k]));found=true;break;}
+    if(!found) sh.appendRow([k,String(obj[k]),'text','']);
+  });
+  return {ok:true};
+}
+function adminGetPageContent() {
+  return pageContentObject_();
+}
+function pageContentObject_(){
+  const o={};
+  try {
+    readRows_('PageContent').forEach(r=>o[r.key]=r.value);
+  } catch(e){}
+  return o;
+}
 function handleAdminAction_(b) {
   if(b.action==='save') return adminSave(b.pin,b.sheet,b.record);
   if(b.action==='delete') return adminDelete(b.pin,b.sheet,b.id);
   if(b.action==='upload') return adminUpload(b.pin,b.name,b.mime,b.data);
   if(b.action==='settings') return adminSaveSettings(b.pin,b.settings);
+  if(b.action==='pageContent') return adminSavePageContent(b.pin,b.pageContent);
   throw new Error('Aksi tidak dikenal.');
 }
 function publicData_() {
@@ -127,7 +210,7 @@ function publicData_() {
     return p;
   });
   const articles=readRows_('Articles').filter(a=>String(a.published)==='true'||String(a.published)==='TRUE');
-  return {ok:true,products,articles,settings:settingsObject_(),generatedAt:new Date().toISOString()};
+  return {ok:true,products,articles,settings:settingsObject_(),pageContent:pageContentObject_(),generatedAt:new Date().toISOString()};
 }
 function dashboard_() {
   const p=readRows_('Products');
