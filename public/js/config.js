@@ -1,0 +1,7 @@
+window.NUR_CONFIG = {
+  API_URL: "PASTE_APPS_SCRIPT_WEB_APP_EXEC_URL_HERE",
+  WHATSAPP_NUMBER: "6280000000000",
+  FARM_NAME: "NUR BIRDFARM",
+  CACHE_MINUTES: 3,
+  SOCIALS: { instagram: "", facebook: "", marketplace: "" }
+};
