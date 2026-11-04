@@ -12,7 +12,7 @@ function applyPageContent(pc={}){const get=(k,d)=>pc[k]!==undefined&&pc[k]!==''?
   const hbw=$('#heroBtnWa'); if(hbw) { hbw.textContent=get('hero_btn_wa','Bicarakan kebutuhanmu ↗'); hbw.href=waUrl(); hbw.target="_blank"; hbw.rel="noopener"; }
   const hfl=$('#heroFootLeft'); if(hfl) hfl.textContent=get('hero_foot_left','01 / KENARI & PERLENGKAPAN');
   const hfr=$('#heroFootRight'); if(hfr) hfr.textContent=get('hero_foot_right','EST. NUR BIRDFARM');
-  const hph=$('#heroPhoto'); if(hph) hph.src=get('hero_photo','https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=1100&q=85');
+  const hph=$('#heroPhoto'); if(hph) hph.src=get('hero_photo','Yellow.jpeg');
   const hpn=$('#heroPhotoNote'); if(hpn) hpn.innerHTML=get('hero_photo_note','<span>01 — 04</span><b>Ruang tumbuh,<br>suara yang hidup.</b>');
   const hst=$('#heroStamp'); if(hst) hst.innerHTML=get('hero_stamp','NUR<br><b>BF</b><small>SELECTED WITH CARE</small>');
   const ce=$('#catalogEyebrow'); if(ce) ce.textContent=get('catalog_eyebrow','PILIH DARI KATALOG');
@@ -22,7 +22,7 @@ function applyPageContent(pc={}){const get=(k,d)=>pc[k]!==undefined&&pc[k]!==''?
   const ft=$('#farmTitle'); if(ft) ft.innerHTML=get('farm_title','Bukan sekadar<br>memilih burung.<br><em>Memahami kebutuhannya.</em>');
   const fd=$('#farmDesc'); if(fd) fd.textContent=get('farm_desc','Kami percaya proses pemeliharaan yang baik dimulai dari lingkungan yang terjaga, pakan yang sesuai, dan perhatian pada kondisi setiap burung.');
   const fl=$('#farmLink'); if(fl) { fl.textContent=get('farm_link','Kenali peternakan kami ↗'); }
-  const fim=$('#farmImage'); if(fim) fim.src=get('farm_image','https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=1000&q=80');
+  const fim=$('#farmImage'); if(fim) fim.src=get('farm_image','Yellow.jpeg');
   const je=$('#journalEyebrow'); if(je) je.textContent=get('journal_eyebrow','CATATAN PERAWATAN');
   const jt=$('#journalTitle'); if(jt) jt.innerHTML=get('journal_title','Belajar merawat,<br><em>sedikit demi sedikit.</em>');
   const jas=$('#journalAside'); if(jas) jas.textContent=get('journal_aside','Artikel singkat seputar kenari dan keseharian di peternakan.');
